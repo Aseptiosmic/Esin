@@ -8,6 +8,7 @@ on:
 
 permissions:
   contents: write
+  actions: read
 
 jobs:
   release-apk:
@@ -45,10 +46,33 @@ jobs:
       - name: Generate Android project
         run: npx expo prebuild --platform android --clean
 
-      - name: Create release signing key
+      - name: Restore release signing key from prior successful build
+        env:
+          GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
           set -euo pipefail
+          previous_run="$(gh run list --repo "$GITHUB_REPOSITORY" --workflow android-release.yml --status success --limit 1 --json databaseId --jq '.[0].databaseId // empty')"
+          if [ -z "$previous_run" ]; then
+            echo "No prior successful release; a new signing key will be created."
+            exit 0
+          fi
+          mkdir -p /tmp/esinfy-signing-backup
+          gh run download "$previous_run" --repo "$GITHUB_REPOSITORY" --name esinfy-android-release --dir /tmp/esinfy-signing-backup
+          test -s /tmp/esinfy-signing-backup/android/app/esinfy-release.keystore
+          test -s /tmp/esinfy-signing-backup/android/keystore.properties
+          install -D -m 600 /tmp/esinfy-signing-backup/android/app/esinfy-release.keystore android/app/esinfy-release.keystore
+          install -D -m 600 /tmp/esinfy-signing-backup/android/keystore.properties android/keystore.properties
+          echo "Restored the signing key from successful run $previous_run."
+
+      - name: Create release signing key if needed
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -s android/app/esinfy-release.keystore ] && [ -s android/keystore.properties ]; then
+            echo "Using restored release signing key."
+            exit 0
+          fi
           umask 077
           password="$(openssl rand -hex 24)"
           keytool -genkeypair -v \
@@ -66,9 +90,30 @@ jobs:
           chmod 600 android/keystore.properties
 
       - name: Assemble signed release APK
+        shell: bash
         run: |
+          set +e
           cd android
-          ./gradlew --no-daemon assembleRelease
+          ./gradlew --no-daemon --stacktrace assembleRelease 2>&1 | tee ../gradle-build.log
+          result=${PIPESTATUS[0]}
+          if [ "$result" -ne 0 ]; then
+            python3 - <<'PY'
+          from pathlib import Path
+          lines=Path('../gradle-build.log').read_text(errors='replace').splitlines()
+          details='\n'.join(lines[-80:]).replace('%','%25').replace('\r','%0D').replace('\n','%0A')
+          print('::error title=Gradle release build failed::'+details)
+          PY
+            exit "$result"
+          fi
+
+      - name: Upload Android build diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: esinfy-android-build-diagnostics
+          path: gradle-build.log
+          retention-days: 7
+          if-no-files-found: ignore
 
       - name: Verify, hash, and prepare APK
         shell: bash
