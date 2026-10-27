@@ -99,14 +99,21 @@ jobs:
           if [ "$result" -ne 0 ]; then
             python3 - <<'PY'
           from pathlib import Path
+          import re
           lines=Path('../gradle-build.log').read_text(errors='replace').splitlines()
-          markers=('FAILURE: Build failed','What went wrong:','Execution failed for task','Could not resolve','Could not find','error:',' e: ')
-          hits=[i for i,line in enumerate(lines) if any(marker in line for marker in markers)]
-          if hits:
-            first=max(0,hits[0]-2)
-            selected=lines[first:min(len(lines),first+70)]
+          kotlin_errors=[i for i,line in enumerate(lines) if re.match(r'^\s*e:\s',line) or re.search(r'\berror:',line,re.I)]
+          if kotlin_errors:
+            selected=[]
+            for i in kotlin_errors[:35]:
+              selected.extend(lines[max(0,i-1):min(len(lines),i+4)])
           else:
-            selected=lines[-70:]
+            markers=('FAILURE: Build failed','What went wrong:','Execution failed for task','Could not resolve','Could not find')
+            hits=[i for i,line in enumerate(lines) if any(marker in line for marker in markers)]
+            if hits:
+              first=max(0,hits[0]-2)
+              selected=lines[first:min(len(lines),first+70)]
+            else:
+              selected=lines[-70:]
           details='\n'.join(selected).replace('%','%25').replace('\r','%0D').replace('\n','%0A')
           print('::error title=Gradle release build failed::'+details)
           PY
