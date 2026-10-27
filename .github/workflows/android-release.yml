@@ -1,0 +1,119 @@
+name: Build Esinfy Android APK
+
+on:
+  push:
+    branches:
+      - arena/05b41acd-esin
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release-apk:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - name: Checkout session branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+          fetch-depth: 0
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Set up JDK
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Verify Android SDK
+        run: |
+          test -f "$ANDROID_HOME/platforms/android-35/android.jar"
+          test -x "$ANDROID_HOME/build-tools/35.0.0/apksigner"
+
+      - name: Install dependencies and generate icons
+        run: |
+          npm ci --no-audit
+          npm run icons
+
+      - name: Generate Android project
+        run: npx expo prebuild --platform android --clean
+
+      - name: Create release signing key
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          password="$(openssl rand -hex 24)"
+          keytool -genkeypair -v \
+            -keystore android/app/esinfy-release.keystore \
+            -storetype PKCS12 \
+            -alias esinfy -keyalg RSA -keysize 2048 -validity 10000 \
+            -dname 'CN=Esinfy, OU=Mobile, O=Esinfy, L=Istanbul, ST=Istanbul, C=TR' \
+            -storepass "$password" -keypass "$password"
+          cat > android/keystore.properties <<PROPS
+          storeFile=app/esinfy-release.keystore
+          storePassword=$password
+          keyAlias=esinfy
+          keyPassword=$password
+          PROPS
+          chmod 600 android/keystore.properties
+
+      - name: Assemble signed release APK
+        run: |
+          cd android
+          ./gradlew --no-daemon assembleRelease
+
+      - name: Verify, hash, and prepare APK
+        shell: bash
+        run: |
+          set -euo pipefail
+          APK=android/app/build/outputs/apk/release/app-release.apk
+          test -s "$APK"
+          "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose --print-certs "$APK" > /tmp/esinfy-signature.txt
+          size=$(stat -c '%s' "$APK")
+          if [ "$size" -ge $((50 * 1024 * 1024)) ]; then
+            echo "Release APK exceeds 50 MB ($size bytes)." >&2
+            exit 1
+          fi
+          install -D "$APK" web/public/app-release.apk
+          sha256sum web/public/app-release.apk | awk '{print $1}' > web/public/app-release.sha256
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('web/public/version.json')
+          data=json.loads(p.read_text())
+          data['apk_sha256']=Path('web/public/app-release.sha256').read_text().strip()
+          p.write_text(json.dumps(data,ensure_ascii=False,indent=2)+'\n')
+          PY
+          echo "APK bytes: $size"
+          cat web/public/app-release.sha256
+
+      - name: Upload signed APK and signing recovery
+        uses: actions/upload-artifact@v4
+        with:
+          name: esinfy-android-release
+          path: |
+            web/public/app-release.apk
+            web/public/app-release.sha256
+            web/public/version.json
+            android/app/esinfy-release.keystore
+            android/keystore.properties
+          retention-days: 90
+          if-no-files-found: error
+
+      - name: Publish APK and matching version manifest to this branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add web/public/app-release.apk web/public/app-release.sha256 web/public/version.json
+          git commit -m 'ci: publish signed Esinfy APK [skip ci]'
+          git push origin "HEAD:${GITHUB_REF_NAME}"
