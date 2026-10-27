@@ -1,0 +1,24 @@
+.gradle/
+**/build/
+local.properties
+keystore.properties
+*.jks
+*.keystore
+*.p12
+*.pfx
+.idea/
+*.iml
+**/node_modules/
+web/.next/
+web/out/
+web/public/app-release.apk
+.DS_Store
+
+*.tsbuildinfo
+web/public/*.apk.tmp
+web/public/version.json.tmp
+
+# Signing material and temporary CI output are not source.
+private/
+ci-build/
+/Esin-*.apk

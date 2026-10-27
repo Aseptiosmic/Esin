@@ -1,0 +1,6 @@
+# Android Studio normally writes sdk.dir here. Never commit local.properties.
+# sdk.dir=/path/to/Android/Sdk
+SUPABASE_URL=https://YOUR_PROJECT.supabase.co
+SUPABASE_ANON_KEY=YOUR_ANON_KEY
+AUDIUS_API_KEY=YOUR_AUDIUS_API_KEY
+AUDIUS_TOKEN=YOUR_AUDIUS_BEARER_TOKEN
