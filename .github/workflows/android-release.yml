@@ -100,7 +100,14 @@ jobs:
             python3 - <<'PY'
           from pathlib import Path
           lines=Path('../gradle-build.log').read_text(errors='replace').splitlines()
-          details='\n'.join(lines[-80:]).replace('%','%25').replace('\r','%0D').replace('\n','%0A')
+          markers=('FAILURE: Build failed','What went wrong:','Execution failed for task','Could not resolve','Could not find','error:',' e: ')
+          hits=[i for i,line in enumerate(lines) if any(marker in line for marker in markers)]
+          if hits:
+            first=max(0,hits[0]-2)
+            selected=lines[first:min(len(lines),first+70)]
+          else:
+            selected=lines[-70:]
+          details='\n'.join(selected).replace('%','%25').replace('\r','%0D').replace('\n','%0A')
           print('::error title=Gradle release build failed::'+details)
           PY
             exit "$result"
