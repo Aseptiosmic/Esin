@@ -4,4 +4,9 @@ version = '1.0.0'
 apply plugin: 'com.android.library'
 apply plugin: 'expo-module-gradle-plugin'
 
-android { namespace "com.esinfy.installer" }
+android {
+  namespace "com.esinfy.installer"
+  defaultConfig {
+    versionName project.version.toString()
+  }
+}

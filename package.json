@@ -11,7 +11,8 @@
     "test": "vitest run",
     "release": "bash scripts/release.sh",
     "icons": "node scripts/generate-icons.js",
-    "ios": "expo run:ios"
+    "ios": "expo run:ios",
+    "postinstall": "node scripts/patch-native-deps.js"
   },
   "dependencies": {
     "@react-native-community/netinfo": "^11.4.1",
