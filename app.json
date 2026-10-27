@@ -1,0 +1,64 @@
+{
+  "expo": {
+    "name": "Esinfy",
+    "slug": "esinfy",
+    "version": "1.0.1",
+    "orientation": "portrait",
+    "scheme": "esinfy",
+    "userInterfaceStyle": "dark",
+    "newArchEnabled": true,
+    "android": {
+      "package": "com.esinfy.app",
+      "versionCode": 2,
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#000000",
+        "monochromeImage": "./assets/monochrome.png"
+      },
+      "permissions": [
+        "INTERNET",
+        "POST_NOTIFICATIONS",
+        "FOREGROUND_SERVICE",
+        "FOREGROUND_SERVICE_MEDIA_PLAYBACK",
+        "REQUEST_INSTALL_PACKAGES",
+        "WAKE_LOCK"
+      ],
+      "blockedPermissions": [
+        "READ_MEDIA_AUDIO",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE",
+        "SYSTEM_ALERT_WINDOW"
+      ],
+      "allowBackup": false
+    },
+    "plugins": [
+      "expo-router",
+      "expo-sqlite",
+      "expo-font",
+      "expo-notifications",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "enableProguardInReleaseBuilds": true,
+            "enableShrinkResourcesInReleaseBuilds": true,
+            "buildArchs": [
+              "arm64-v8a"
+            ]
+          }
+        }
+      ],
+      "./plugins/withEsinfyNative.js",
+      "./modules/esinfy-installer/app.plugin.js"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": ""
+      }
+    }
+  }
+}

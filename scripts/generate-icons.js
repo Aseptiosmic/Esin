@@ -1,0 +1,3 @@
+const sharp=require('sharp');const path=require('path');
+const svg=(mono=false)=>`<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">${mono?'':'<rect width="1024" height="1024" fill="#000"/>'}<g fill="none" stroke="#fff" stroke-width="56" stroke-linecap="round"><path d="M397 290c0 70 80 70 80 140s-80 70-80 140 80 70 80 140"/><path d="M512 220c0 70 80 70 80 140s-80 70-80 140 80 70 80 140-80 70-80 140"/><path d="M627 290c0 70 80 70 80 140s-80 70-80 140 80 70 80 140"/></g></svg>`;
+(async()=>{await sharp(Buffer.from(svg())).png().toFile(path.join(__dirname,'../assets/adaptive-icon.png'));await sharp(Buffer.from(svg(true))).png().toFile(path.join(__dirname,'../assets/monochrome.png'));})();

@@ -1,0 +1,6 @@
+import * as FileSystem from 'expo-file-system/legacy';
+import { getStreamUrl, type Track } from '../api/audius';
+import { setLocalPath } from '../db/repository';
+const root=`${FileSystem.documentDirectory}esinfy/`;
+export async function downloadTrack(track:Track,onProgress?:(fraction:number)=>void){await FileSystem.makeDirectoryAsync(root,{intermediates:true});const part=`${root}${track.id}.part`,dest=`${root}${track.id}.mp3`;try{const url=await getStreamUrl(track.id);const task=FileSystem.createDownloadResumable(url,part,{},p=>onProgress?.(p.totalBytesExpectedToWrite? p.totalBytesWritten/p.totalBytesExpectedToWrite:0));const result=await task.downloadAsync();if(!result||result.status<200||result.status>=300)throw new Error('İndirme başarısız');const info=await FileSystem.getInfoAsync(part);if(!info.exists||!info.size)throw new Error('Boş dosya indirildi');await FileSystem.moveAsync({from:part,to:dest});await setLocalPath(track.id,dest);return dest;}catch(e){await FileSystem.deleteAsync(part,{idempotent:true}).catch(()=>{});throw e;}}
+export async function cleanPartialDownloads(){const entries=await FileSystem.readDirectoryAsync(root).catch(()=>[]);await Promise.all(entries.filter(x=>x.endsWith('.part')).map(x=>FileSystem.deleteAsync(root+x,{idempotent:true})));}
