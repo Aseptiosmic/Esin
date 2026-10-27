@@ -1,0 +1,15 @@
+node_modules/
+.expo/
+/android/
+/ios/
+.env
+.env.*
+!.env.example
+keystore.properties
+*.jks
+*.keystore
+web/node_modules/
+web/.next/
+web/.env*
+*.log
+.DS_Store

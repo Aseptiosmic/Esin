@@ -1,0 +1,9 @@
+{
+  "latest_version_code": 2,
+  "latest_version_name": "1.0.1",
+  "min_version_code": 2,
+  "force_update": true,
+  "apk_url": "https://esinfy.vercel.app/app-release.apk",
+  "apk_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+  "changelog": "Hata düzeltmeleri"
+}
