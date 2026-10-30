@@ -1,0 +1,59 @@
+/* AXON — motion research hub. 262k GPU particles + fluid sim + monospace UI. */
+:root {
+  --accent: #aa88ff;
+  --text: #dddddd;
+  --muted: #8a8a8a;
+  --chip: #1c1c1c;
+  --line: #2a2a2a;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; background: #000; color: var(--text); font-family: "SF Mono", "Menlo", "Consolas", "Liberation Mono", monospace; font-size: 13px; line-height: 1.35; letter-spacing: .02em; text-transform: uppercase; overflow: hidden; -webkit-font-smoothing: antialiased; }
+a, button { color: inherit; text-decoration: none; font: inherit; text-transform: inherit; letter-spacing: inherit; background: none; border: 0; cursor: pointer; }
+
+#bg { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; display: block; }
+.ui { position: fixed; inset: 0; z-index: 1; pointer-events: none; }
+.blend { mix-blend-mode: plus-lighter; }
+
+/* brand */
+.brand { position: absolute; top: 24px; left: 24px; display: flex; align-items: center; gap: 14px; pointer-events: auto; }
+.brand svg { width: 40px; height: 40px; flex: none; }
+.brand .nm { font-size: 20px; line-height: 1; color: #fff; display: block; }
+.brand .sb { font-size: 11px; color: var(--muted); margin-top: 2px; display: block; }
+
+/* counter */
+.counter { position: absolute; top: 24px; right: 24px; width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--line); background: #0a0a0a; color: #fff; font-size: 14px; display: grid; place-items: center; }
+
+/* tags */
+.tags { position: absolute; top: 120px; left: 24px; width: 320px; display: flex; flex-wrap: wrap; gap: 6px; pointer-events: auto; }
+.chip { background: var(--chip); color: #cfcfcf; padding: 5px 9px; font-size: 11px; line-height: 1.1; transition: background-color .2s, color .2s; }
+.chip.on, .chip:hover { background: #e6e6e6; color: #000; }
+
+/* card list */
+.list { position: absolute; top: 250px; left: 24px; bottom: 0; width: 320px; overflow-y: auto; scrollbar-width: none; pointer-events: auto; }
+.list::-webkit-scrollbar { display: none; }
+.card { padding: 18px 0; border-top: 1px solid var(--line); }
+.thumb { height: 160px; border-radius: 2px; background: #0a0a0a; overflow: hidden; position: relative; }
+.thumb video { width: 100%; height: 100%; object-fit: cover; display: block; }
+.meta { display: flex; justify-content: space-between; gap: 16px; margin-top: 10px; font-size: 12px; }
+.meta .l { color: #fff; white-space: pre-line; }
+.meta .r { color: var(--muted); text-align: right; white-space: pre-line; }
+
+/* right text column */
+.about { position: absolute; right: 90px; top: 50%; transform: translateY(-50%); width: 380px; pointer-events: auto; }
+.blk + .blk { margin-top: 2.2em; }
+.about h2 { font-size: 13px; font-weight: 400; color: var(--accent); margin-bottom: 1em; }
+.about p { text-align: justify; margin-bottom: 1em; color: var(--text); }
+.about p:last-child { margin-bottom: 0; }
+.about ul { list-style: inside; color: var(--text); }
+.about li + li { margin-top: .25em; }
+.about a { display: block; text-decoration: underline; margin: 4px 0; color: var(--text); transition: opacity .3s ease; }
+.about a:hover { opacity: .7; }
+
+@media (max-width: 1100px) {
+  .about { right: 24px; width: 320px; }
+}
+@media (max-width: 760px) {
+  .list, .tags { display: none; }
+  .about { left: 24px; right: 24px; top: auto; bottom: 24px; width: auto; transform: none; }
+  .about p { text-align: left; }
+}

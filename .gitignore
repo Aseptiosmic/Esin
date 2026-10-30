@@ -13,3 +13,7 @@ web/.next/
 web/.env*
 *.log
 .DS_Store
+
+# erat (Google Drive kaynakli web projesi)
+erat/dist/
+erat/node_modules/

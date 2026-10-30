@@ -1,0 +1,129 @@
+/* LEON VASARI — VHS filmography shelf. Warm paper, cobalt, 3D cuboid tapes, no opacity fades. */
+:root {
+  --paper: #EDEBE6;
+  --sheet: #F4F2ED;
+  --ink: #141414;
+  --muted: #6D6A63;
+  --cobalt: #1F3FB0;
+  --rule: rgba(20, 20, 20, .9);
+  --ease: cubic-bezier(.2, .8, .2, 1);
+  --H: min(46vh, 31vw);
+}
+@media (max-width: 767px) { :root { --H: min(60vw, 40svh); } }
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; background: var(--paper); color: var(--ink); overflow: hidden; user-select: none; -webkit-user-select: none; -webkit-font-smoothing: antialiased; font-family: "Inter Tight", "Noto Sans JP", system-ui, sans-serif; }
+button, a { font: inherit; color: inherit; background: none; border: 0; text-decoration: none; }
+@media (pointer: fine) {
+  html, body, button, a { cursor: none !important; }
+}
+
+.probe { position: fixed; left: -9999px; top: 0; width: 0; height: var(--H); pointer-events: none; visibility: hidden; }
+
+/* paper grain */
+.grain {
+  position: fixed; inset: 0; z-index: 40; pointer-events: none;
+  mix-blend-mode: multiply; opacity: .55;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 .45 0 0 0 0 .42 0 0 0 0 .38 0 0 0 .22 0'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23g)'/%3E%3C/svg%3E");
+}
+
+/* label system */
+.lbl { font-family: "Inter Tight", "Noto Sans JP", system-ui, sans-serif; font-weight: 600; font-size: 10.5px; line-height: 1; letter-spacing: .09em; text-transform: uppercase; white-space: nowrap; }
+.box { display: inline-flex; align-items: center; justify-content: center; height: 21px; padding: 0 8px; border: 1px solid var(--rule); }
+
+/* 1. top bar */
+.top { position: fixed; inset: 0 0 auto 0; height: 84px; padding: 0 32px; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; z-index: 30; }
+.top .back { justify-self: start; }
+.top .career { justify-self: end; }
+.logo { display: flex; flex-direction: column; align-items: center; gap: 5px; color: var(--cobalt); }
+.logo .zh { font-family: "Noto Serif SC", Georgia, serif; font-weight: 700; font-size: 22px; line-height: 1; letter-spacing: .04em; padding-left: .04em; }
+.logo .en { font-weight: 600; font-size: 9px; line-height: 1; letter-spacing: .34em; padding-left: .34em; }
+
+/* 2. decade tabs */
+.tabs { position: fixed; left: 50%; top: calc(50% - var(--H) / 2 - 86px); transform: translateX(-50%); display: inline-flex; z-index: 30; }
+.tabs .ind { position: absolute; left: 0; top: 0; height: 23px; width: 0; background: var(--cobalt); transition: transform .6s var(--ease), width .6s var(--ease); pointer-events: none; }
+.tabs button { position: relative; z-index: 1; height: 23px; padding: 0 11px; border: 1px solid var(--rule); margin-left: -1px; transition: color .45s var(--ease); }
+.tabs button:first-of-type { margin-left: 0; }
+.tabs button.on { color: #fff; }
+
+/* 3. shelf */
+.shelf { position: fixed; left: 0; right: 0; top: calc(50% - var(--H) / 2 - 40px); height: calc(var(--H) + 80px); perspective: 2200px; perspective-origin: 50% 50%; touch-action: pan-y; z-index: 10; }
+.stage { position: absolute; left: 50%; top: 50%; width: 0; height: 0; transform-style: preserve-3d; }
+.tape { position: absolute; left: 0; top: 0; width: 0; height: 0; transform-style: preserve-3d; will-change: transform; }
+.sp, .cv { position: absolute; height: var(--H); top: calc(var(--H) / -2); background-size: 100% 100%; background-repeat: no-repeat; backface-visibility: hidden; -webkit-backface-visibility: hidden; border-radius: 2px; overflow: hidden; }
+.sp { width: var(--ws, 60px); left: calc(var(--ws, 60px) / -2); transform: translateZ(calc(var(--d, 190px) / 2)); }
+.cv { width: var(--d, 190px); left: calc(var(--d, 190px) / -2); transform: rotateY(90deg) translateZ(calc(var(--ws, 60px) / 2)); box-shadow: 0 30px 60px -28px rgba(20, 16, 10, .55); }
+.sp::after, .cv::after { content: ""; position: absolute; inset: 0; background: #000; opacity: var(--shade, 0); pointer-events: none; }
+
+/* 4. play ring */
+.play { position: fixed; width: 42px; height: 42px; margin: -21px 0 0 -21px; border-radius: 50%; border: 1px solid var(--cobalt); color: var(--cobalt); background: rgba(237, 235, 230, .75); display: grid; place-items: center; z-index: 25; will-change: transform; }
+.play svg { width: 12px; height: 12px; transform: translateX(1.5px); }
+
+/* 5. caption */
+.cap { position: fixed; left: 50%; top: calc(50% + var(--H) / 2 + 30px); transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 9px; pointer-events: none; z-index: 20; }
+.mask { position: relative; overflow: hidden; width: min(92vw, 760px); text-align: center; }
+.mask > span { display: block; will-change: transform; }
+.mask > span + span { position: absolute; inset: 0; }
+.ctitle { font-family: "Newsreader", Georgia, serif; font-weight: 400; font-size: 31px; line-height: 1.12; letter-spacing: -.01em; padding-bottom: .06em; }
+.csub { color: var(--cobalt); font-weight: 500; padding: 2px 0; }
+.cyear { font-weight: 500; font-size: 11px; line-height: 1.1; letter-spacing: .08em; }
+
+/* 6. arrows */
+.arr { position: fixed; top: calc(50% + var(--H) / 2 + 40px); width: 44px; height: 44px; margin-top: -12px; display: grid; place-items: center; z-index: 30; }
+.arr.prev { left: 20px; }
+.arr.next { right: 20px; }
+.arr svg { width: 18px; height: 10px; }
+
+/* 7. footer */
+.foot { position: fixed; left: 32px; right: 32px; bottom: 26px; display: flex; justify-content: space-between; align-items: center; z-index: 30; }
+
+/* 8. custom cursor */
+.cur { position: fixed; left: 0; top: 0; width: 58px; height: 58px; margin: -29px 0 0 -29px; pointer-events: none; z-index: 100; display: none; will-change: transform; }
+@media (pointer: fine) { .cur { display: block; } }
+.cur .ring { position: absolute; inset: 0; border-radius: 50%; border: 1.5px solid var(--ink); background: transparent; transition: transform .5s var(--ease), background-color .4s var(--ease), border-color .4s var(--ease); }
+.cur .dot { position: absolute; left: 50%; top: 50%; width: 6px; height: 6px; margin: -3px 0 0 -3px; border-radius: 50%; background: var(--ink); transition: transform .4s var(--ease); }
+.cur .txt { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; font-weight: 600; font-size: 10px; line-height: 1.25; letter-spacing: .1em; color: #fff; text-align: center; transform: scale(0); transition: transform .45s var(--ease); }
+.cur.spine .ring { transform: scale(.72); }
+.cur.btn .ring { transform: scale(.55); }
+.cur.btn .dot { transform: scale(0); }
+.cur.open .ring { transform: scale(1.75); background: var(--cobalt); border-color: var(--cobalt); }
+.cur.open .dot { transform: scale(0); }
+.cur.open .txt { transform: scale(1); }
+
+/* detail sheet */
+.detail { position: fixed; inset: 0; z-index: 60; background: var(--sheet); visibility: hidden; display: grid; grid-template-columns: 1fr 1fr; gap: 4vw; padding: 110px 6vw 56px 7vw; align-items: center; will-change: clip-path, transform; }
+.detail .close { position: fixed; left: 32px; top: 31px; z-index: 2; }
+.detail .dtop { position: fixed; inset: 0 0 auto 0; height: 84px; display: grid; place-items: center; pointer-events: none; }
+.dleft { max-width: 520px; display: flex; flex-direction: column; align-items: flex-start; gap: 18px; }
+.dline { overflow: hidden; padding-bottom: .06em; margin-bottom: -.06em; }
+.dline > * { display: block; will-change: transform; }
+.dsub { color: var(--cobalt); font-weight: 500; }
+.dtitle { font-family: "Newsreader", Georgia, serif; font-weight: 400; font-size: clamp(44px, 5.4vw, 84px); line-height: 1; letter-spacing: -.025em; }
+.dmeta { color: var(--muted); font-weight: 500; }
+.dsyn { font-family: "Newsreader", Georgia, serif; font-weight: 400; font-size: 17px; line-height: 1.5; max-width: 42ch; }
+.dcred { font-family: "Newsreader", "Noto Sans JP", Georgia, serif; font-style: italic; font-weight: 400; font-size: 15px; color: var(--muted); }
+.watch { height: 44px; padding: 0 20px; margin-top: 10px; border: 1px solid var(--cobalt); color: var(--cobalt); display: inline-flex; align-items: center; }
+.dright { height: 100%; display: grid; place-items: center; min-height: 0; }
+.poster { height: min(100%, 78vh); aspect-ratio: 474 / 900; max-width: 100%; display: block; filter: drop-shadow(0 28px 50px rgba(20, 16, 10, .35)); }
+
+/* responsive */
+@media (max-width: 767px) {
+  .lbl { font-size: 9px; }
+  .top { height: 64px; padding: 0 16px; }
+  .logo .zh { font-size: 17px; }
+  .logo .en { font-size: 7.5px; }
+  .top .career { display: none; }
+  .tabs { top: calc(50% - var(--H) / 2 - 70px); }
+  .tabs button { padding: 0 7px; }
+  .ctitle { font-size: 24px; }
+  .arr.prev { left: 6px; }
+  .arr.next { right: 6px; }
+  .foot { left: 16px; right: 16px; bottom: 18px; }
+  .detail { grid-template-columns: 1fr; overflow-y: auto; padding: 84px 22px 40px; gap: 24px; align-items: start; }
+  .detail .close { left: 16px; top: 21px; }
+  .detail .dtop { height: 64px; }
+  .dright { order: -1; height: auto; }
+  .poster { height: 46svh; }
+  .dtitle { font-size: 42px; }
+  .dsyn { font-size: 16px; }
+}
